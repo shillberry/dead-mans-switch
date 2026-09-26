@@ -444,6 +444,25 @@ func TestFetchPublicKeys(t *testing.T) {
 	}
 }
 
+func TestFetchTokenEndpoint(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/.well-known/openid-configuration" {
+			t.Errorf("unexpected discovery path %q", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"token_endpoint":"https://oauth.example.com/token"}`))
+	}))
+	defer server.Close()
+
+	got, err := FetchTokenEndpoint(server.URL)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got != "https://oauth.example.com/token" {
+		t.Errorf("expected token endpoint %q, got %q", "https://oauth.example.com/token", got)
+	}
+}
+
 func TestDecodeBase64URL(t *testing.T) {
 	tests := []struct {
 		name        string

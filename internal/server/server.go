@@ -201,8 +201,14 @@ func New(cfg *Config) (*Server, error) {
 
 	// JWT Authentication
 	var jwtValidator *middleware.JWTValidator
+	var tokenEndpoint string
 	if server.AuthEnabled {
 		var err error
+		tokenEndpoint, err = middleware.FetchTokenEndpoint(server.AuthIssuerURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch token endpoint from issuer: %w", err)
+		}
+
 		publicKeys, err := middleware.FetchPublicKeys(server.AuthIssuerURL)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch public keys from issuer: %w", err)
@@ -270,6 +276,9 @@ func New(cfg *Config) (*Server, error) {
 		// Unauthenticated routes
 		r.Group(func(r chi.Router) {
 			r.Get("/auth/config", handlers.AuthConfigHandler(authCfg))
+			if server.AuthEnabled {
+				r.Post("/auth/token", handlers.TokenExchangeHandler(tokenEndpoint, server.AuthAudience, server.AuthClientSecret))
+			}
 		})
 
 		// Apply JWT auth middleware to authenticated routes

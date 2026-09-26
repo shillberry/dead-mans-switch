@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/circa10a/dead-mans-switch/internal/server/database"
 	"github.com/golang-jwt/jwt/v5"
@@ -164,7 +165,46 @@ func JWTAuth(validator *JWTValidator) func(http.Handler) http.Handler {
 
 // oidcDiscovery represents the OpenID Connect discovery document
 type oidcDiscovery struct {
-	JWKSURI string `json:"jwks_uri"`
+	JWKSURI      string `json:"jwks_uri"`
+	TokenEndpoint string `json:"token_endpoint"`
+}
+
+// FetchTokenEndpoint fetches the token endpoint from the issuer's OIDC discovery document.
+func FetchTokenEndpoint(issuerURL string) (string, error) {
+	discoveryURL := strings.TrimSuffix(issuerURL, "/") + "/.well-known/openid-configuration"
+	parsedURL, err := url.ParseRequestURI(discoveryURL)
+	if err != nil {
+		return "", fmt.Errorf("invalid OIDC discovery URL: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, parsedURL.String(), nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create OIDC discovery request: %w", err)
+	}
+	resp, err := (&http.Client{Timeout: 10 * time.Second}).Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch OIDC discovery: %w", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("OIDC discovery endpoint returned status %d", resp.StatusCode)
+	}
+
+	var discovery oidcDiscovery
+	if err := json.NewDecoder(resp.Body).Decode(&discovery); err != nil {
+		return "", fmt.Errorf("failed to decode OIDC discovery: %w", err)
+	}
+	if discovery.TokenEndpoint == "" {
+		return "", fmt.Errorf("OIDC discovery did not contain token_endpoint")
+	}
+	parsedTokenURL, err := url.ParseRequestURI(discovery.TokenEndpoint)
+	if err != nil || (parsedTokenURL.Scheme != "https" && parsedTokenURL.Scheme != "http") || parsedTokenURL.Host == "" {
+		return "", fmt.Errorf("OIDC discovery contained an invalid token_endpoint")
+	}
+
+	return parsedTokenURL.String(), nil
 }
 
 // FetchPublicKeys fetches JWKS from the issuer's OIDC discovery endpoint

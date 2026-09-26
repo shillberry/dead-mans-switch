@@ -318,6 +318,39 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthConfig'
+  /auth/token:
+    post:
+      summary: Exchange an authorization code for OIDC tokens
+      description: Redeems the browser's authorization code and PKCE verifier server-side so confidential client secrets are not exposed to the browser.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+                - codeVerifier
+                - redirectUri
+              properties:
+                code:
+                  type: string
+                codeVerifier:
+                  type: string
+                redirectUri:
+                  type: string
+      responses:
+        '200':
+          description: Tokens returned by the OIDC provider
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Invalid token exchange request
+        '502':
+          description: OIDC provider request failed
 
 components:
   securitySchemes:

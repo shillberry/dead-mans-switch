@@ -138,6 +138,7 @@ Config keys match CLI flag names (hyphenated). Every flag also has a correspondi
 ## Guides
 
 - [Authentik Integration](docs.guides/AUTHENTIK_INTEGRATION.md) — Set up OIDC authentication with Authentik
+- [Google OAuth Integration](docs/guides/GOOGLE_OAUTH_INTEGRATION.md) — Set up Google sign-in
 - [Tailscale + MagicDNS HTTPS](docs.guides/TAILSCALE_INTEGRATION.md) — Private HTTPS via Tailscale without exposing to the internet
 
 ### API Documentation
@@ -192,6 +193,7 @@ Usage:
 
 Flags:
       --auth-audience string           Expected JWT audience claim. (env: DEAD_MANS_SWITCH_AUTH_AUDIENCE)
+      --auth-client-secret string          OAuth2 client secret for    confidential OIDC clients. Kept server-side during browser login. (env: DEAD_MANS_SWITCH_AUTH_CLIENT_SECRET)
       --auth-enabled                   Enable JWT authentication via OIDC. (env: DEAD_MANS_SWITCH_AUTH_ENABLED)
       --auth-issuer-url string         Identity provider OAuth2 issuer URL. (env: DEAD_MANS_SWITCH_AUTH_ISSUER_URL)
   -a, --auto-tls                       Enable automatic TLS via Let's Encrypt. Requires port 80/443 open to the internet for domain validation. (env: DEAD_MANS_SWITCH_AUTO_TLS)

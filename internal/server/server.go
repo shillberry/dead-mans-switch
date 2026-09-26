@@ -59,6 +59,7 @@ type Server struct {
 
 // Config holds configuration for creating a Server.
 type Config struct {
+	AuthClientSecret  string
 	AuthEnabled       bool
 	AuthIssuerURL     string
 	AuthAudience      string

@@ -19,6 +19,7 @@ import (
 
 // Constants for Viper keys and Flag names
 const (
+	authClientSecretKey   = "auth-client-secret"
 	authEnabledKey        = "auth-enabled"
 	authIssuerURLKey      = "auth-issuer-url"
 	authAudienceKey       = "auth-audience"
@@ -45,6 +46,7 @@ var serverCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Build server configuration using the constants
 		cfg := &server.Config{
+			AuthClientSecret:  viper.GetString(authClientSecretKey),
 			AuthEnabled:       viper.GetBool(authEnabledKey),
 			AuthIssuerURL:     viper.GetString(authIssuerURLKey),
 			AuthAudience:      viper.GetString(authAudienceKey),
@@ -91,7 +93,8 @@ func init() {
 	rootCmd.AddCommand(serverCmd)
 
 	serverFlags := []flagDef{
-		{Name: authEnabledKey, Type: "bool", Default: false, Usage: "Enable JWT authentication via Authentik.", ViperKey: authEnabledKey},
+		{Name: authEnabledKey, Type: "bool", Default: false, Usage: "Enable JWT authentication via OIDC.", ViperKey: authEnabledKey},
+		{Name: authClientSecretKey, Type: "string", Default: "", Usage: "OAuth2 client secret for confidential OIDC clients. Kept server-side during browser login.", ViperKey: authClientSecretKey},
 		{Name: authIssuerURLKey, Type: "string", Default: "", Usage: "Identity provider OAuth2 issuer URL.", ViperKey: authIssuerURLKey},
 		{Name: authAudienceKey, Type: "string", Default: "", Usage: "Expected JWT audience claim.", ViperKey: authAudienceKey},
 		{Name: autoTLSKey, Shorthand: "a", Type: "bool", Default: false, Usage: "Enable automatic TLS via Let's Encrypt. Requires port 80/443 open to the internet for domain validation.", ViperKey: autoTLSKey},

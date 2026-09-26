@@ -1012,7 +1012,7 @@
                         response_type: 'code',
                         client_id: this.oidcConfig.clientId,
                         redirect_uri: window.location.origin + '/',
-                        scope: 'openid email profile offline_access',
+                        scope: 'openid email profile',
                         code_challenge: challenge,
                         code_challenge_method: 'S256',
                         state: state,
